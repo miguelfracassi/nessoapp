@@ -12,6 +12,10 @@ const admin = (req) => req.headers.authorization === "Bearer " + process.env.ADM
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN || "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.status(204).end();
   try {
     await init();
     if (req.method === "POST") {

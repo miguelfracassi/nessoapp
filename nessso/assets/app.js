@@ -38,12 +38,29 @@ pay:()=>hd(1)+`<div class="pg">${stp(3)}<h1>Pagamento</h1><br>${[["Débito","car
 pagando:()=>`<div class="c" style="padding:150px 20px"><svg viewBox="0 0 120 150" width="170"><defs><clipPath id="cc"><path d="M20 34h80l-9 100a8 8 0 0 1-8 7H37a8 8 0 0 1-8-7z"/></clipPath></defs><g clip-path="url(#cc)"><g class="liq"><rect x="-40" y="150" width="240" height="140" fill="#b98a6a"/><path class="wv" d="M-40 150q10-8 20 0t20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0z" fill="#b98a6a"/></g></g><path d="M20 34h80l-9 100a8 8 0 0 1-8 7H37a8 8 0 0 1-8-7z" fill="none" stroke="#0033A6" stroke-width="5" stroke-linejoin="round"/><rect x="13" y="20" width="94" height="16" rx="8" fill="#0033A6"/></svg><h1 style="margin-top:20px">Pagando...</h1><p>Estamos preparando o seu pedido.</p><div class="bar"><i></i></div></div>`,
 congrulations:()=>{const o=JSON.parse(sessionStorage.getItem("last")||"null");setTimeout(confetti,300);return `<div class="c" style="padding:70px 20px"><img class="pop" style="margin:auto" src="/assets/logo-blue.png" height="110" alt=""><h2 style="margin-top:28px">Parabéns${nome?", "+nome:""}!</h2><p style="font-size:20px">Pedido #${o?o.codigo:""} confirmado.</p><h3 style="font:600 26px Fredoka;margin:30px 0 0">Retire em até 10 minutos na</h3><div class="big pop" style="color:var(--bl);font-size:clamp(46px,9vw,110px);margin:10px 0">${LOJA}</div><p style="font-size:18px">${END}</p><br><a class="pill" href="/">Novo pedido</a></div><canvas id="cf"></canvas>`},
 api:()=>hd(1)+`<div class="pg" style="max-width:960px"><h1>API NESO</h1><p>Os pedidos ficam no banco Neon. Qualquer sistema (impressora, ERP, WhatsApp, bot) lê pela API:</p>
-<pre>POST  /api/orders                     (público - cria pedido)
-GET   /api/orders?status=pago         (lista pedidos)
-GET   /api/orders?id=UUID             (um pedido)
-PATCH /api/orders?id=UUID  {"status":"impresso"}
-Header nas rotas protegidas:  Authorization: Bearer ADMIN_TOKEN</pre>
+${SN().map(([t,c],i)=>`<div class="lb">${t}</div><pre id="sn${i}">${c.replace(/</g,"&lt;")}</pre><button class="pill o sm" onclick="cp(${i},this)">Copiar código</button>`).join("")}
 <div class="lb">Painel + impressão</div><input type="password" id="key" placeholder="ADMIN_TOKEN" value="${sessionStorage.getItem("tk")||""}"><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="pill" onclick="loadO()">Carregar pedidos</button><label><input type="checkbox" onchange="auto(this.checked)"> imprimir novos a cada 5s</label></div><div id="ol" style="margin-top:24px"></div></div><div id="tk"></div>`};
+const SN=()=>{const u=location.origin+"/api/orders";return [
+["URL base",u],
+["Criar pedido (JavaScript, sem token)",`fetch("${u}",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+    cliente:"João",
+    pagamento:"Pix", // Pix | Débito | Crédito
+    itens:[{produto:"cappucino",tipo:"Gelado",tam:"Médio"}] // produto: cafecomleite | cappucino | tipo: Gelado | Sem Gelo | tam: Pequeno | Médio | Grande
+  })
+}).then(r=>r.json()).then(console.log) // {id, codigo, total}`],
+["Listar pedidos (precisa do ADMIN_TOKEN)",`fetch("${u}?status=pago",{
+  headers:{Authorization:"Bearer SEU_ADMIN_TOKEN"}
+}).then(r=>r.json()).then(pedidos=>console.log(pedidos))`],
+["Marcar como impresso",`fetch("${u}?id=ID_DO_PEDIDO",{
+  method:"PATCH",
+  headers:{"Content-Type":"application/json",Authorization:"Bearer SEU_ADMIN_TOKEN"},
+  body:JSON.stringify({status:"impresso"})
+})`],
+["curl",`curl -H "Authorization: Bearer SEU_ADMIN_TOKEN" "${u}?status=pago"`]]};
+function cp(i,b){navigator.clipboard.writeText(document.getElementById("sn"+i).textContent);b.textContent="Copiado!";setTimeout(()=>b.textContent="Copiar código",1500)}
 function add(k){cart.push({k,nome:P[k].n,tipo,tam,preco:SZ.find(x=>x[0]==tam)[1]});sv("cart",cart);toast(I("check")+" Adicionado ao carrinho");setTimeout(()=>location="/carrinho/",800)}
 function goPay(){if(!pg)return alert("Selecione a forma de pagamento");sessionStorage.setItem("pend",JSON.stringify({cliente:nome,pagamento:pg,itens:cart,total:tot()}));location="/pagando/"}
 async function save(o){try{const r=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({cliente:o.cliente,pagamento:o.pagamento,itens:o.itens.map(i=>({produto:i.k,tipo:i.tipo,tam:i.tam}))})});if(r.ok)return await r.json()}catch(e){}

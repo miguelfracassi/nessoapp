@@ -1,0 +1,1 @@
+{"rewrites":[{"source":"/api","destination":"/painel/index.html"},{"source":"/api/","destination":"/painel/index.html"}]}
